@@ -1,7 +1,5 @@
 <?php
-
 namespace ArifurRahmanSw\Repository;
-
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use ArifurRahmanSw\Repository\Commands\RepositoryCommand;
@@ -19,7 +17,6 @@ class RepositoryServiceProvider extends PackageServiceProvider
         $this->app->bind(BaseRepositoryInterface::class, function ($app) {
             return new UserRepository(new \App\Models\User());
         });
-
         // Register CommonRepo for facade access
         $this->app->singleton('common.repo', function () {
             return new CommonRepository();

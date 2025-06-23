@@ -1,9 +1,10 @@
 <?php
 namespace ArifurRahmanSw\Repository;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use ArifurRahmanSw\Repository\Contracts\BaseRepositoryInterface;
+
 abstract class BaseRepository implements BaseRepositoryInterface
 {
     protected $model;
