@@ -1,23 +1,41 @@
 <?php
-namespace VendorName\Repository;
+
+namespace ArifurRahmanSw\Repository;
+
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use VendorName\Repository\Commands\RepositoryCommand;
+use ArifurRahmanSw\Repository\Commands\RepositoryCommand;
+use ArifurRahmanSw\Repository\Contracts\BaseRepositoryInterface;
+use ArifurRahmanSw\Repository\Repositories\UserRepository;
+use ArifurRahmanSw\Repository\Repositories\CommonRepository;
 
 class RepositoryServiceProvider extends PackageServiceProvider
 {
+    public function register(): void
+    {
+        parent::register();
+
+        // Bind interface to concrete repository
+        $this->app->bind(BaseRepositoryInterface::class, function ($app) {
+            return new UserRepository(new \App\Models\User());
+        });
+
+        // Register CommonRepo for facade access
+        $this->app->singleton('common.repo', function () {
+            return new CommonRepository();
+        });
+    }
+
     public function configurePackage(Package $package): void
     {
-        /*
-         * This class is a Package Service Provider
-         *
-         * More info: https://github.com/spatie/laravel-package-tools
-         */
         $package
-            ->name('Repository')
-            ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_migration_table_name_table')
-            ->hasCommand(RepositoryCommand::class);
+            ->name('laravel-repository')
+            ->hasCommands([
+                RepositoryCommand::class, // optional
+            ]);
+            // ->hasConfigFile()       // if you add config/repository.php
+            // ->hasViews()            // if views are needed
+            // ->hasMigrations()       // if migrations are needed
+            // ->hasRoute('web');      // if you plan to ship routes
     }
 }

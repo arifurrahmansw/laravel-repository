@@ -1,3 +1,3 @@
 <?php
-namespace VendorName\Repository;
+namespace ArifurRahmanSw\Repository;
 class Repository {}

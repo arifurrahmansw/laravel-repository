@@ -1,0 +1,51 @@
+<?php
+namespace {{ namespace }};
+use {{ modelNamespace }};
+use ArifurRahmanSw\Repository\BaseRepository;
+
+class {{ ClassName }}Repository extends BaseRepository implements {{ ClassName }}Interface
+{
+    protected {{ modelClass }} $model;
+
+    public function __construct({{ modelClass }} $model)
+    {
+        $this->model = $model;
+    }
+
+    public function all()
+    {
+        return $this->model->all();
+    }
+
+    public function combo()
+    {
+        return $this->model->select('id', 'name')->get();
+    }
+
+    public function store(array $data)
+    {
+        return $this->model->create($data);
+    }
+
+    public function update(array $data, int $id)
+    {
+        $item = $this->model->findOrFail($id);
+        $item->update($data);
+        return $item;
+    }
+
+    public function paginate(int $perPage = 10)
+    {
+        return $this->model->latest()->paginate($perPage);
+    }
+
+    public function get(int $id)
+    {
+        return $this->model->findOrFail($id);
+    }
+
+    public function destroy(int $id): bool
+    {
+        return $this->model->findOrFail($id)->delete();
+    }
+}

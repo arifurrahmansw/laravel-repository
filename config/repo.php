@@ -1,6 +1,6 @@
 <?php
 
-// config for VendorName/Skeleton
+// config for ArifurRahmanSw/Repository
 return [
 
 ];

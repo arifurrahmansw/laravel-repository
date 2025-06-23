@@ -1,11 +1,11 @@
 <?php
-namespace App\Facades;
+namespace ArifurRahmanSw\Repository\Facades;
 use Illuminate\Support\Facades\Facade;
 
 class CommonRepo extends Facade
 {
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return \App\Repositories\Common\CommonRepository::class;
+        return 'common.repo';
     }
 }
