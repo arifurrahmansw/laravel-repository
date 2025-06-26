@@ -1,74 +1,163 @@
-# :package_description
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
+# 🧰 Laravel Repository Generator
+
+A Laravel package that provides a clean, reusable, and extendable **Repository Pattern** implementation with artisan command support. Designed to keep your business logic separate from data access.
+
+
+<p>
+<a href="https://packagist.org/packages/arifurrahmansw/laravel-repository">
+<img alt="Packagist Stars" src="https://img.shields.io/packagist/stars/arifurrahmansw/laravel-repository">
+</a>
+<a href="https://packagist.org/packages/arifurrahmansw/laravel-repository">
+    <img alt="GitHub issues" src="https://img.shields.io/github/issues/arifurrahmansw/laravel-repository">
+</a>
+<a href="https://packagist.org/packages/arifurrahmansw/laravel-repository"><img src="https://img.shields.io/packagist/dt/arifurrahmansw/laravel-repository" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/arifurrahmansw/laravel-repository"><img src="https://img.shields.io/packagist/v/arifurrahmansw/laravel-repository" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/arifurrahmansw/laravel-repository"><img src="https://img.shields.io/packagist/l/arifurrahmansw/laravel-repository" alt="License"></a>
+</p>
 ---
-This repo can be used to scaffold a Laravel package. Follow these steps to get started:
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Have fun creating your package.
-4. If you need help creating a package, consider picking up our <a href="https://laravelpackage.training">Laravel Package Training</a> video course.
+## 📦 Package Name
+
+**`arifurrahmansw/laravel-repository`**
+
+> Build maintainable Laravel apps using the repository pattern with ease.
+
 ---
-<!--/delete-->
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
 
-## Support us
+## 🚀 Features
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/:package_name.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/:package_name)
+-   🧠 Simple command to generate repository pattern files
+-   📁 Automatically generates:
+    -   Repository Interface
+    -   Repository Class (extends `BaseRepository`)
+    -   Optional Eloquent Model
+-   🔌 Auto-binds interface to implementation in your `RepositoryServiceProvider`
+-   ⚙️ Customizable stub publishing
+-   🧪 Compatible with Laravel 10, 11, 12+
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
+---
 
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+## 📥 Installation
 
-## Installation
-
-You can install the package via composer:
-
-```bash
-composer require :vendor_slug/:package_slug
-```
-
-You can publish and run the migrations with:
+Install the package via Composer:
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
-php artisan migrate
+composer require arifurrahmansw/laravel-repository
 ```
-
-You can publish the config file with:
+Publish the package assets (provider, stubs, etc.):
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-config"
+php artisan vendor:publish --tag=laravel-repository-provider
 ```
+---
 
-This is the contents of the published config file:
+## 🔧 Configuration
+
+This package supports Laravel's auto-discovery out of the box.
+
+If you want to register the service provider manually, add it to your `config/app.php` providers array:
 
 ```php
-return [
-];
+'providers' => [
+    // Other service providers...
+
+    App\Providers\RepositoryServiceProvider::class,
+],
 ```
+---
+## ✨ Usage
 
-Optionally, you can publish the views using
+📁 Generate a Repository
 
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
-```
-
-## Usage
+To generate a full repository structure for a model:
 
 ```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
+php artisan make:repo User
 ```
 
-## Testing
+This will:
+
+✅ Create `App\Models\User` (if it doesn’t exist)
+
+✅ Generate `UserInterface.php` and `UserRepository.php` under `App\Repositories\User`
+
+✅ Register binding automatically inside `App\Providers\RepositoryServiceProvider`
+
+🔀 Generate Repository Without Model
 
 ```bash
-composer test
+php artisan make:repo Post --no-model
+```
+
+🗂 Directory Structure (Generated)
+
+```bash
+app/
+├── Models/
+│   └── User.php
+└── Repositories/
+    └── User/
+        ├── UserInterface.php
+        └── UserRepository.php
+
+```
+
+🔁 Interface Binding
+
+The package auto-registers this in your `RepositoryServiceProvider`:
+
+```php
+$this->app->bind(
+    \App\Repositories\User\UserInterface::class,
+    \App\Repositories\User\UserRepository::class
+);
+```
+
+## 📚 BaseRepository
+
+All generated repositories extend `ArifurRahmanSw\Repository\BaseRepository`.
+
+✨ Available Methods
+
+```php
+all();
+find($id);
+create(array $data);
+update($id, array $data);
+delete($id);
+```
+
+## 🛠 Helper Response Methods
+
+```php
+formatResponse(bool $status, string $message, string $redirect_to, $data = null);
+successResponse(int $code, string $message, $data = null);
+jsonResponse(string $message = null, array|object $data = [], int $statusCode = 200);
+
+```
+
+## 🧪 Example Usage in Controller
+
+```php
+use App\Repositories\User\UserInterface;
+
+class UserController extends Controller
+{
+    protected UserInterface $repo;
+
+    public function __construct(UserInterface $repo)
+    {
+        $this->repo = $repo;
+    }
+
+    public function index()
+    {
+        $users = $this->repo->all();
+        return view('users.index', compact('users'));
+    }
+}
+
 ```
 
 ## Changelog
@@ -77,16 +166,12 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Contributing
 
+Contributions are welcome! Please feel free to open issues or submit pull requests.
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 
 ## Credits
 
-- [:author_name](https://github.com/arifurrahmansw)
-- [All Contributors](../../contributors)
+-   [arifurrahmansw](https://github.com/arifurrahmansw)
 
 ## License
 
