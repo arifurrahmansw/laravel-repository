@@ -3,7 +3,7 @@
 
 A Laravel package that provides a clean, reusable, and extendable **Repository Pattern** implementation with artisan command support. Designed to keep your business logic separate from data access.
 
-
+   
 <p>
 <a href="https://packagist.org/packages/arifurrahmansw/laravel-repository">
 <img alt="Packagist Stars" src="https://img.shields.io/packagist/stars/arifurrahmansw/laravel-repository">
