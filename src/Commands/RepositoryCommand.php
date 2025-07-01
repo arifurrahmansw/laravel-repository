@@ -37,7 +37,7 @@ class RepositoryCommand extends Command
         $modelPath = app_path("Models/{$name}.php");
 
         if (! File::exists($modelPath)) {
-            $this->call('make:model', ['name' => "Models/{$name}"]);
+            $this->call('make:model', ['name' => "{$name}"]);
             $this->info("✅ Model created: App\\Models\\{$name}");
         } else {
             $this->warn("ℹ️ Model already exists: App\\Models\\{$name}");
