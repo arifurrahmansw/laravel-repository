@@ -80,7 +80,7 @@ This will:
 
 ✅ Create `App\Models\User` (if it doesn’t exist)
 
-✅ Generate `UserInterface.php` and `UserRepository.php` under `App\Repositories\User`
+✅ Generate `UserInterface.php` and `UserAbstract.php` under `App\Repositories\User`
 
 ✅ Register binding automatically inside `App\Providers\RepositoryServiceProvider`
 
@@ -102,7 +102,7 @@ app/
 ├── Repositories/
 │   └── User/
 │       ├── UserInterface.php
-│       └── UserRepository.php
+│       └── UserAbstract.php
 └── Providers/
     └── RepositoryServiceProvider.php
 
@@ -116,7 +116,7 @@ The package auto-registers this in your `RepositoryServiceProvider`:
 ```php
 $this->app->bind(
     \App\Repositories\User\UserInterface::class,
-    \App\Repositories\User\UserRepository::class
+    \App\Repositories\User\UserAbstract::class
 );
 ```
 
