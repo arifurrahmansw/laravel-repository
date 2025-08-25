@@ -1,20 +1,99 @@
 <?php
-
 namespace {{ namespace }};
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface {{ ClassName }}Interface
 {
-    public function all();
+    /**
+     * Paginate records
+     *
+     * @param int $limit
+     * @return LengthAwarePaginator
+     */
+    public function paginate(int $limit = 10): LengthAwarePaginator;
 
-    public function get(int $id);
+    /**
+     * Get all records
+     *
+     * @return Collection
+     */
+    public function all(): Collection;
 
-    public function combo();
+    /**
+     * Combo list (key => value)
+     *
+     * @param string $key
+     * @param string $value
+     * @return Collection
+     */
+    public function combo(string $key = 'id', string $value = 'name'): Collection;
 
-    public function paginate(int $perPage = 10);
+    /**
+     * Find record by ID
+     *
+     * @param int $id
+     * @return Model|null
+     */
+    public function find(int $id): ?Model;
 
-    public function store(array $data);
+    /**
+     * Find record by custom field
+     *
+     * @param string $field
+     * @param mixed $value
+     * @return Model|null
+     */
+    public function findBy(string $field, $value): ?Model;
 
-    public function update(array $data, int $id);
+    /**
+     * Store a new record
+     *
+     * @param array $data
+     * @return object
+     */
+    public function store(array $data): object;
 
-    public function destroy(int $id): bool;
+    /**
+     * Update record by ID
+     *
+     * @param int $id
+     * @param array $data
+     * @return object
+     */
+    public function update(int $id, array $data): object;
+
+    /**
+     * Delete record by ID
+     *
+     * @param int $id
+     * @return object
+     */
+    public function destroy(int $id): object;
+
+    /**
+     * Toggle status column
+     *
+     * @param int $id
+     * @return object
+     */
+    public function statusUpdate(int $id): object;
+
+    /**
+     * Search records by filters
+     *
+     * @param array $filters
+     * @param int $limit
+     * @return LengthAwarePaginator
+     */
+    public function search(array $filters = [], int $limit = 10): LengthAwarePaginator;
+
+    /**
+     * Restore a soft-deleted record by ID
+     *
+     * @param int $id
+     * @return object
+     */
+    public function restore(int $id): object;
 }

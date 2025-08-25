@@ -3,13 +3,30 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class {{modelName}} extends Model
 {
-   /**
-    * The attributes that are mass assignable.
-    *
-    * @var string[]
-    */
-   protected $fillable = [ 'name'];
+    use SoftDeletes; // optional, if you want soft delete support
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var string[]
+     */
+    protected $fillable = [
+        // 'name',
+        // 'email',
+        // add other fields here
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        // 'status' => 'boolean',
+        // 'created_at' => 'datetime',
+    ];
 }

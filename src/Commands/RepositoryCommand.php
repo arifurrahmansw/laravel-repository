@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class RepositoryCommand extends Command
 {
     protected $signature = 'make:repo {name} {--no-model}';
-    protected $description = 'Generate repository interface, class, and optionally a model. Auto-bind in RepositoryServiceProvider.';
+    protected $description = 'Generate repository interface, class, controller, requests, and optionally a model. Auto-bind in RepositoryServiceProvider.';
 
     public function handle(): int
     {
@@ -18,7 +18,7 @@ class RepositoryCommand extends Command
 
         if (! $this->confirm("Generate repository for '{$name}'?")) {
             $this->info('❌ Cancelled.');
-            return 0;
+            return self::FAILURE;
         }
 
         if (! $noModel) {
@@ -29,20 +29,33 @@ class RepositoryCommand extends Command
         $this->appendBindingToProvider($name);
 
         $this->info("🎉 Repository structure for '{$name}' has been generated successfully.");
-        return 0;
+        return self::SUCCESS;
     }
 
     protected function generateModel(string $name): void
     {
         $modelPath = app_path("Models/{$name}.php");
+        $stubPath  = __DIR__ . '/../stubs/Model.stub';
 
-        if (! File::exists($modelPath)) {
-            $this->call('make:model', ['name' => "{$name}"]);
-            $this->info("✅ Model created: App\\Models\\{$name}");
-        } else {
+        if (File::exists($modelPath)) {
             $this->warn("ℹ️ Model already exists: App\\Models\\{$name}");
+            return;
         }
+
+        if (!File::exists($stubPath)) {
+            $this->error("❌ Missing stub: {$stubPath}");
+            return;
+        }
+
+        $stubContents = File::get($stubPath);
+        $replaced = str_replace('{{modelName}}', $name, $stubContents);
+
+        File::ensureDirectoryExists(dirname($modelPath));
+        File::put($modelPath, $replaced);
+
+        $this->info("✅ Model created from stub: App\\Models\\{$name}");
     }
+
 
     protected function generateRepository(string $name): void
     {
@@ -54,9 +67,13 @@ class RepositoryCommand extends Command
 
         $stubPath = __DIR__ . '/../stubs';
         $stubMap = [
-            'Interface.stub' => "{$name}Interface.php",
-            'Abstract.stub'  => "{$name}Repository.php",
+            'Interface.stub'     => "{$name}Interface.php",
+            'Abstract.stub'      => "{$name}Abstract.php",
+            'Controller.stub'    => "{$name}Controller.php",
+            'StoreRequest.stub'  => "Store{$name}Request.php",
+            'UpdateRequest.stub' => "Update{$name}Request.php",
         ];
+
         foreach ($stubMap as $stub => $fileName) {
             $stubFullPath = "{$stubPath}/{$stub}";
 
@@ -64,15 +81,42 @@ class RepositoryCommand extends Command
                 $this->error("❌ Missing stub: {$stubFullPath}");
                 continue;
             }
+
             $contents = File::get($stubFullPath);
+
             $replaced = str_replace(
-                ['{{ ClassName }}', '{{ className }}', '{{ namespace }}', '{{ modelNamespace }}', '{{ baseRepositoryNamespace }}'],
-                [$name, Str::camel($name), "App\\Repositories\\{$name}", "App\\Models\\{$name}", "App\\Repositories\\BaseRepository"],
+                [
+                    '{{ ClassName }}',
+                    '{{ className }}',
+                    '{{ namespace }}',
+                    '{{ repositoryNamespace }}',
+                    '{{ requestNamespace }}', // <-- replace this
+                    '{{ variable }}',
+                    '{{ viewPath }}',
+                ],
+                [
+                    $name,
+                    Str::camel($name),
+                    "App\\Repositories\\{$name}",
+                    "App\\Repositories\\{$name}",
+                    "App\\Http\\Requests",  // actual namespace for requests
+                    Str::camel($name),
+                    Str::kebab(Str::plural($name)),
+                ],
                 $contents
             );
+            if (Str::contains($stub, 'Controller.stub')) {
+                $filePath = app_path("Http/Controllers/{$fileName}");
+            } elseif (Str::contains($stub, 'Request.stub')) {
+                $filePath = app_path("Http/Requests/{$name}/{$fileName}");
+            } else {
+                $filePath = "{$repoPath}/{$fileName}";
+            }
 
-            File::put("{$repoPath}/{$fileName}", $replaced);
-            $this->info("📄 Created: Repositories/{$name}/{$fileName}");
+            File::ensureDirectoryExists(dirname($filePath));
+            File::put($filePath, $replaced);
+
+            $this->info("📄 Created: {$filePath}");
         }
     }
 
@@ -81,13 +125,13 @@ class RepositoryCommand extends Command
         $providerPath = app_path('Providers/RepositoryServiceProvider.php');
 
         if (! File::exists($providerPath)) {
-            $this->warn("⚠️ RepositoryServiceProvider not found.");
-            return;
+            $this->warn("⚠️ RepositoryServiceProvider not found. Auto-generating...");
+            $this->generateServiceProvider();
         }
 
         $content = File::get($providerPath);
         $interface = "App\\Repositories\\{$name}\\{$name}Interface";
-        $repository = "App\\Repositories\\{$name}\\{$name}Repository";
+        $repository = "App\\Repositories\\{$name}\\{$name}Abstract";
         $bindingCode = "        \$this->app->bind(\\{$interface}::class, \\{$repository}::class);";
 
         if (Str::contains($content, $bindingCode)) {
@@ -95,7 +139,6 @@ class RepositoryCommand extends Command
             return;
         }
 
-        // Inject into register() method
         if (preg_match('/public function register\(\)\s*\{\s*\n/', $content, $matches, PREG_OFFSET_CAPTURE)) {
             $insertPos = $matches[0][1] + strlen($matches[0][0]);
             $newContent = substr_replace($content, $bindingCode . "\n", $insertPos, 0);
@@ -104,5 +147,32 @@ class RepositoryCommand extends Command
         } else {
             $this->warn("⚠️ Could not locate 'register()' method in RepositoryServiceProvider.");
         }
+    }
+
+    protected function generateServiceProvider(): void
+    {
+        $providerContent = <<<PHP
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class RepositoryServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        // Auto bindings will be inserted here
+    }
+
+    public function boot(): void
+    {
+        //
+    }
+}
+PHP;
+
+        File::put(app_path('Providers/RepositoryServiceProvider.php'), $providerContent);
+        $this->info("✅ RepositoryServiceProvider created.");
     }
 }

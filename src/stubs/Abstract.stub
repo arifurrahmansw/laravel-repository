@@ -1,15 +1,218 @@
 <?php
 namespace {{ namespace }};
-use {{ modelNamespace }};
-use ArifurRahmanSw\Repository\BaseRepository;
+use Throwable;
+use App\Models\{{ ClassName }};
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Model;
+use ArifurRahmanSw\Traits\RepoResponse;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class {{ ClassName }}Repository extends BaseRepository implements {{ ClassName }}Interface
+abstract class {{ ClassName }}Abstract implements {{ ClassName }}Interface
 {
+    use RepoResponse;
+
     protected {{ ClassName }} $model;
 
+    /**
+     * Constructor
+     */
     public function __construct({{ ClassName }} $model)
     {
         $this->model = $model;
     }
 
+    /**
+     * Paginate records
+     *
+     * @param int $limit
+     * @return LengthAwarePaginator
+     */
+    public function paginate(int $limit = 10): LengthAwarePaginator
+    {
+        return $this->model->latest('id')->paginate($limit);
+    }
+
+    /**
+     * Get all records
+     *
+     * @return Collection
+     */
+    public function all(): Collection
+    {
+        return $this->model->all();
+    }
+
+    /**
+     * Get combo list (key => value)
+     *
+     * @param string $key
+     * @param string $value
+     * @return Collection
+     */
+    public function combo(string $key = 'id', string $value = 'name'): Collection
+    {
+        return $this->model->pluck($value, $key);
+    }
+
+    /**
+     * Find a record by ID
+     *
+     * @param int $id
+     * @return Model|null
+     */
+    public function find(int $id): ?Model
+    {
+        return $this->model->find($id);
+    }
+
+    /**
+     * Find a record by a custom field
+     *
+     * @param string $field
+     * @param mixed $value
+     * @return Model|null
+     */
+    public function findBy(string $field, $value): ?Model
+    {
+        return $this->model->where($field, $value)->first();
+    }
+
+    /**
+     * Store a new record with transaction handling
+     *
+     * @param array $data
+     * @return object
+     */
+    public function store(array $data): object
+    {
+        DB::beginTransaction();
+
+        try {
+            $model = $this->model->create($data);
+            DB::commit();
+
+            return $this->formatResponse(true, __('Created Successfully'), 'admin.{{ variable }}.index', $model);
+        } catch (Throwable $e) {
+            DB::rollBack();
+            return $this->formatResponse(false, $e->getMessage(),'',[]);
+        }
+    }
+
+    /**
+     * Update a record by ID with transaction handling
+     *
+     * @param int $id
+     * @param array $data
+     * @return object
+     */
+    public function update(int $id, array $data): object
+    {
+        DB::beginTransaction();
+
+        try {
+            $model = $this->find($id);
+            if (!$model) {
+                DB::rollBack();
+                return $this->formatResponse(false, __('Not Found'),'',[]);
+            }
+
+            $model->update($data);
+            DB::commit();
+
+            return $this->formatResponse(true, __('Updated Successfully'), 'admin.{{ variable }}.index', $model);
+        } catch (Throwable $e) {
+            DB::rollBack();
+            return $this->formatResponse(false, $e->getMessage(),'',[]);
+        }
+    }
+
+    /**
+     * Delete a record by ID
+     *
+     * @param int $id
+     * @return object
+     */
+    public function destroy(int $id): object
+    {
+        try {
+            $model = $this->find($id);
+            if (!$model) {
+                return $this->formatResponse(false, __('Not Found'),'',[]);
+            }
+
+            $model->delete();
+            return $this->formatResponse(true, __('Deleted Successfully'), 'admin.{{ variable }}.index');
+        } catch (Throwable $e) {
+            return $this->formatResponse(false, $e->getMessage(),'',[]);
+        }
+    }
+
+    /**
+     * Toggle status column if available
+     *
+     * @param int $id
+     * @return object
+     */
+    public function statusUpdate(int $id): object
+    {
+        try {
+            $model = $this->find($id);
+
+            if (!$model) {
+                return $this->formatResponse(false, __('Not Found'),'',[]);
+            }
+
+            if ($model->getAttribute('status') !== null) {
+                $model->status = $model->status == 1 ? 0 : 1;
+                $model->save();
+
+                return $this->formatResponse(true, __('Status Updated Successfully'), '', $model);
+            }
+
+            return $this->formatResponse(false, __('Status column not found'),'',[]);
+        } catch (Throwable $e) {
+            return $this->formatResponse(false, $e->getMessage(),'',[]);
+        }
+    }
+
+    /**
+     * Search records by filters (LIKE query)
+     *
+     * @param array $filters
+     * @param int $limit
+     * @return LengthAwarePaginator
+     */
+    public function search(array $filters = [], int $limit = 10): LengthAwarePaginator
+    {
+        $query = $this->model->newQuery();
+
+        foreach ($filters as $field => $value) {
+            $query->where($field, 'LIKE', "%{$value}%");
+        }
+
+        return $query->paginate($limit);
+    }
+
+    /**
+     * Restore a soft-deleted record by ID
+     *
+     * @param int $id
+     * @return object
+     */
+    public function restore(int $id): object
+    {
+        try {
+            $model = $this->model->withTrashed()->find($id);
+
+            if (!$model) {
+                return $this->formatResponse(false, __('Not Found'),'',[]);
+            }
+
+            $model->restore();
+            return $this->formatResponse(true, __('Restored Successfully'), 'admin.{{ variable }}.index', $model);
+        } catch (Throwable $e) {
+            return $this->formatResponse(false, $e->getMessage(),'',[]);
+        }
+    }
 }

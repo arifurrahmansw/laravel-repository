@@ -87,7 +87,7 @@ This will:
 🔀 Generate Repository Without Model
 
 ```bash
-php artisan make:repo Post --no-model
+php artisan make:repo User --no-model
 ```
 
 🗂 Directory Structure (Generated)
@@ -96,10 +96,16 @@ php artisan make:repo Post --no-model
 app/
 ├── Models/
 │   └── User.php
-└── Repositories/
-    └── User/
-        ├── UserInterface.php
-        └── UserRepository.php
+├── Http/
+│   └── Controllers/
+│       └── UserController.php
+├── Repositories/
+│   └── User/
+│       ├── UserInterface.php
+│       └── UserRepository.php
+└── Providers/
+    └── RepositoryServiceProvider.php
+
 
 ```
 
@@ -121,11 +127,17 @@ All generated repositories extend `ArifurRahmanSw\Repository\BaseRepository`.
 ✨ Available Methods
 
 ```php
-all();
-find($id);
-create(array $data);
-update($id, array $data);
-delete($id);
+public function paginate(int $limit = 10): LengthAwarePaginator;
+public function all(): Collection;
+public function combo(string $key = 'id', string $value = 'name'): Collection;
+public function find(int $id): ?Model;
+public function findBy(string $field, $value): ?Model;
+public function store(array $data): object;
+public function update(int $id, array $data): object;
+public function destroy(int $id): object;
+public function statusUpdate(int $id): object;
+public function search(array $filters = [], int $limit = 10): LengthAwarePaginator;
+public function restore(int $id): object;
 ```
 
 ## 🛠 Helper Response Methods
@@ -144,17 +156,121 @@ use App\Repositories\User\UserInterface;
 
 class UserController extends Controller
 {
-    protected UserInterface $repo;
+      /**
+     * The repository instance.
+     *
+     * @var UserInterface
+     */
+    protected UserInterface $user;
 
-    public function __construct(UserInterface $repo)
+    public function __construct(UserInterface $user)
     {
-        $this->repo = $repo;
+        $this->user = $user;
     }
 
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $users = $this->repo->all();
-        return view('users.index', compact('users'));
+        $data = $this->user->paginate(10);
+        return view('users.index', compact('data'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('users.create');
+    }
+
+    /**
+     * Store a newly created resource.
+     */
+    public function store(StoreUserRequest $request)
+    {
+        $result = $this->user->store($request->validated());
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to)->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(int $id)
+    {
+        $data = $this->user->find($id);
+        return view('users.edit', compact('data'));
+    }
+
+    /**
+     * Update the specified resource.
+     */
+    public function update(UpdateUserRequest $request, int $id)
+    {
+        $result = $this->user->update($id, $request->validated());
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to)->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
+    }
+
+    /**
+     * Remove the specified resource.
+     */
+    public function destroy(int $id)
+    {
+        $result = $this->user->destroy($id);
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to)->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
+    }
+
+    /**
+     * Toggle status of the resource.
+     */
+    public function statusUpdate(int $id)
+    {
+        $result = $this->user->statusUpdate($id);
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to ?? 'users.index')
+                ->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
+    }
+
+    /**
+     * Search resource by filters.
+     */
+    public function search(array $filters = [], int $limit = 10): LengthAwarePaginator
+    {
+        return $this->user->search($filters, $limit);
+    }
+
+    /**
+     * Restore a soft-deleted resource.
+     */
+    public function restore(int $id)
+    {
+        $result = $this->user->restore($id);
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to)->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
     }
 }
 

@@ -1,106 +1,127 @@
 <?php
 namespace App\Http\Controllers;
-use App\Http\Requests\{{modelName}}Request;
-use {{ modelNamespace }};
+use App\Http\Controllers\Controller;
+use {{ repositoryNamespace }}\{{ ClassName }}Interface;
+use {{ requestNamespace }}\Store{{ ClassName }}Request;
+use {{ requestNamespace }}\Update{{ ClassName }}Request;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class {{modelName}}Controller extends Controller
+class {{ ClassName }}Controller extends Controller
 {
+    /**
+     * The repository instance.
+     *
+     * @var {{ ClassName }}Interface
+     */
+    protected {{ ClassName }}Interface ${{ variable }};
 
-    protected $repo;
-
-    public function __construct(
-        DashboardInterface $repo,
-        )
+    public function __construct({{ ClassName }}Interface ${{ variable }})
     {
-        $this->repo   = $repo;
+        $this->{{ variable }} = ${{ variable }};
     }
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-    */
-
+     */
     public function index()
     {
-        ${{modelNamePluralLowerCase}} = {{modelName}}::latest()->get();
-        return view('{{modelNameSingularLowerCase}}.index', compact('{{modelNamePluralLowerCase}}'));
+        $data = $this->{{ variable }}->paginate(10);
+        return view('{{ viewPath }}.index', compact('data'));
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-
     public function create()
     {
-        return view('{{modelNameSingularLowerCase}}.create');
-    }
-
-     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-
-    public function store({{modelName}}Request $request)
-    {
-        ${{modelNameSingularLowerCase}} = {{modelName}}::create($request->all());
-        return back();
+        return view('{{ viewPath }}.create');
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-    */
-    public function show($id)
+     * Store a newly created resource.
+     */
+    public function store(Store{{ ClassName }}Request $request)
     {
-        ${{modelNameSingularLowerCase}} = {{modelName}}::findOrFail($id);
-        return view('{{modelNameSingularLowerCase}}.show', compact('{{modelNameSingularLowerCase}}'));
+        $result = $this->{{ variable }}->store($request->validated());
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to)->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
     }
 
-     /**
+    /**
      * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(int $id)
     {
-        //
-        ${{modelNameSingularLowerCase}} = {{modelName}}::findOrFail($id);
-        return view('{{modelNameSingularLowerCase}}.edit', compact('{{modelNameSingularLowerCase}}'));
+        $data = $this->{{ variable }}->find($id);
+        return view('{{ viewPath }}.edit', compact('data'));
     }
 
-   /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+    /**
+     * Update the specified resource.
      */
-
-    public function update({{modelName}}Request $request, $id)
+    public function update(Update{{ ClassName }}Request $request, int $id)
     {
-        ${{modelNameSingularLowerCase}} = {{modelName}}::findOrFail($id);
-        ${{modelNameSingularLowerCase}}->update($request->all());
-        return back();
+        $result = $this->{{ variable }}->update($id, $request->validated());
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to)->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
     }
 
-   /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+    /**
+     * Remove the specified resource.
      */
-
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        {{modelName}}::destroy($id);
-        return back();
+        $result = $this->{{ variable }}->destroy($id);
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to)->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
+    }
+
+    /**
+     * Toggle status of the resource.
+     */
+    public function statusUpdate(int $id)
+    {
+        $result = $this->{{ variable }}->statusUpdate($id);
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to ?? '{{ viewPath }}.index')
+                ->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
+    }
+
+    /**
+     * Search resource by filters.
+     */
+    public function search(array $filters = [], int $limit = 10): LengthAwarePaginator
+    {
+        return $this->{{ variable }}->search($filters, $limit);
+    }
+
+    /**
+     * Restore a soft-deleted resource.
+     */
+    public function restore(int $id)
+    {
+        $result = $this->{{ variable }}->restore($id);
+
+        if ($result->status) {
+            return redirect()->route($result->redirect_to)->with('success', $result->message);
+        }
+
+        return back()->with('danger', $result->message);
     }
 }
