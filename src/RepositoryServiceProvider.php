@@ -26,7 +26,7 @@ class RepositoryServiceProvider extends PackageServiceProvider
     public function bootingPackage(): void
     {
         $this->publishes([
-            __DIR__ . '/../stubs/RepositoryServiceProvider.stub' => app_path('Providers/RepositoryServiceProvider.php'),
+            __DIR__ . '/stubs/RepositoryServiceProvider.stub' => app_path('Providers/RepositoryServiceProvider.php'),
         ], 'laravel-repository-provider');
     }
 }
