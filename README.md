@@ -120,8 +120,6 @@ $this->app->bind(
 );
 ```
 
-## 📚 BaseRepository
-
 All generated repositories extend `ArifurRahmanSw\Repository\BaseRepository`.
 
 ✨ Available Methods
