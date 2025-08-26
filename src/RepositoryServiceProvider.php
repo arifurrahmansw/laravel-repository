@@ -1,9 +1,9 @@
 <?php
 namespace ArifurRahmanSw\Repository;
-use App\Repositories\Common\CommonRepository;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use ArifurRahmanSw\Repository\Commands\RepositoryCommand;
+use ArifurRahmanSw\Repository\Repositories\CommonRepository;
 
 class RepositoryServiceProvider extends PackageServiceProvider
 {

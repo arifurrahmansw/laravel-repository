@@ -1,5 +1,5 @@
 <?php
-namespace App\Repositories\Common;
+namespace ArifurRahmanSw\Repository\Repositories;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;

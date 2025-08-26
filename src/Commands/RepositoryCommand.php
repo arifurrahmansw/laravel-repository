@@ -2,9 +2,10 @@
 
 namespace ArifurRahmanSw\Repository\Commands;
 
+use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
+use ArifurRahmanSw\Repository\RepositoryServiceProvider;
 
 class RepositoryCommand extends Command
 {
@@ -13,6 +14,9 @@ class RepositoryCommand extends Command
 
     public function handle(): int
     {
+
+        // $this->generateTrait(); // ensures RepoResponse trait exists
+
         $name = Str::studly($this->argument('name'));
         $noModel = $this->option('no-model');
 
@@ -148,6 +152,29 @@ class RepositoryCommand extends Command
             $this->warn("⚠️ Could not locate 'register()' method in RepositoryServiceProvider.");
         }
     }
+
+    protected function generateTrait(): void
+    {
+        $traitPath = __DIR__ . '/../Traits/RepoResponse.php';
+        $stubPath = __DIR__ . '/../stubs/RepoResponse.stub';
+
+        if (File::exists($traitPath)) {
+            $this->warn("ℹ️ Trait already exists: ArifurRahmanSw\\Repository\\Traits\\RepoResponse");
+            return;
+        }
+
+        if (!File::exists($stubPath)) {
+            $this->error("❌ Missing stub: {$stubPath}");
+            return;
+        }
+
+        $stubContents = File::get($stubPath);
+        File::ensureDirectoryExists(dirname($traitPath));
+        File::put($traitPath, $stubContents);
+
+        $this->info("✅ Trait created: ArifurRahmanSw\\Repository\\Traits\\RepoResponse");
+    }
+
 
     protected function generateServiceProvider(): void
     {

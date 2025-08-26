@@ -1,5 +1,5 @@
 <?php
-namespace ArifurRahmanSw\Repository\Traits;
+namespace ArifurRahmanSw\Traits;
 trait RepoResponse
 {
     public function formatResponse(bool $status, string $msg, string $redirect_to, $data = null, string $flash_type = ''): object

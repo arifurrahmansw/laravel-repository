@@ -5,10 +5,10 @@ use App\Models\{{ ClassName }};
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
-use ArifurRahmanSw\Traits\RepoResponse;
+use ArifurRahmanSw\Repository\Traits\RepoResponse;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-abstract class {{ ClassName }}Abstract implements {{ ClassName }}Interface
+class {{ ClassName }}Abstract implements {{ ClassName }}Interface
 {
     use RepoResponse;
 
